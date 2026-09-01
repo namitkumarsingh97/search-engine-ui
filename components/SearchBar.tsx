@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-
+import { Search, Menu, X, ArrowRight } from "lucide-react";
 interface SearchBarProps {
   initialQuery?: string;
   autoFocus?: boolean;
@@ -24,7 +24,8 @@ export default function SearchBar({
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 
-  const inputPadding = size === "large" ? "py-3 px-5 text-lg" : "py-2 px-4 text-base";
+  const inputPadding =
+    size === "large" ? "py-3 px-5 text-lg" : "py-2 px-4 text-base";
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
@@ -45,6 +46,7 @@ export default function SearchBar({
           className="mr-2 rounded-full bg-brand px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
         >
           Search
+          <Search size={18} />
         </button>
       </div>
     </form>
