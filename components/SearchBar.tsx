@@ -31,7 +31,7 @@ export default function SearchBar({
     <form onSubmit={handleSubmit} className="w-full">
       <div className="flex items-center gap-2 rounded-full border border-gray-300 shadow-sm hover:shadow-md focus-within:shadow-md transition-shadow">
         <span className="pl-4 text-gray-400" aria-hidden>
-          🔍
+          <Search size={18} />
         </span>
         <input
           type="text"
@@ -46,7 +46,7 @@ export default function SearchBar({
           className="mr-2 rounded-full bg-brand px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
         >
           Search
-          <Search size={18} />
+          {/* <Search size={18} /> */}
         </button>
       </div>
     </form>

@@ -13,7 +13,7 @@ export default async function AdminOverviewPage() {
     <main>
       <Header />
       <div className="px-6">
-        <h1 className="mb-4 text-2xl font-semibold">MiniSearch Admin</h1>
+        <h1 className="mb-4 text-2xl font-semibold">Nexa Admin</h1>
         <AdminNav />
 
         {stats ? (

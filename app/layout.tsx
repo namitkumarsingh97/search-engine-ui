@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MiniSearch",
+  title: "Nexa",
   description: "A small search engine built from scratch",
 };
 

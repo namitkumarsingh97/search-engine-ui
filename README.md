@@ -1,6 +1,6 @@
-# MiniSearch — Frontend
+# Nexa — Frontend
 
-The web UI for MiniSearch, a small search engine built to learn how crawling, indexing, and ranking actually work under the hood. This is the Next.js frontend; it talks to a separate Express + MongoDB backend ([`search-engine-api`](../search-engine-api)) for everything — search results, crawler control, and stats.
+The web UI for Nexa, a small search engine built to learn how crawling, indexing, and ranking actually work under the hood. This is the Next.js frontend; it talks to a separate Express + MongoDB backend ([`search-engine-api`](../search-engine-api)) for everything — search results, crawler control, and stats.
 
 ## Stack
 
@@ -10,13 +10,13 @@ The web UI for MiniSearch, a small search engine built to learn how crawling, in
 
 ## Pages
 
-| Route | Description |
-|---|---|
-| `/` | Homepage — centered search box |
-| `/search?q=...` | Search results (server-rendered, calls the backend directly) |
-| `/admin` | Admin overview — indexed pages, domains, search terms, recent crawls |
-| `/admin/crawler` | Start/stop the crawler, seed URLs, live status polling |
-| `/admin/analytics` | Placeholder for query analytics (top queries, zero-result queries) |
+| Route              | Description                                                          |
+| ------------------ | -------------------------------------------------------------------- |
+| `/`                | Homepage — centered search box                                       |
+| `/search?q=...`    | Search results (server-rendered, calls the backend directly)         |
+| `/admin`           | Admin overview — indexed pages, domains, search terms, recent crawls |
+| `/admin/crawler`   | Start/stop the crawler, seed URLs, live status polling               |
+| `/admin/analytics` | Placeholder for query analytics (top queries, zero-result queries)   |
 
 ## Getting started
 
@@ -30,8 +30,8 @@ Open [http://localhost:3000](http://localhost:3000). The backend must be running
 
 ## Environment variables
 
-| Variable | Description | Default |
-|---|---|---|
+| Variable              | Description                 | Default                     |
+| --------------------- | --------------------------- | --------------------------- |
 | `NEXT_PUBLIC_API_URL` | Base URL of the backend API | `http://localhost:4000/api` |
 
 Restart `npm run dev` after changing `.env.local` — Next.js only reads env vars at boot.
@@ -62,12 +62,12 @@ lib/
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start the dev server |
-| `npm run build` | Production build |
+| Command         | Description              |
+| --------------- | ------------------------ |
+| `npm run dev`   | Start the dev server     |
+| `npm run build` | Production build         |
 | `npm run start` | Run the production build |
-| `npm run lint` | Lint the project |
+| `npm run lint`  | Lint the project         |
 
 ## Notes
 
