@@ -5,7 +5,7 @@ export default function ResultCard({ result }: { result: SearchResult }) {
     <article className="mb-6 max-w-2xl">
       <a
         href={result.url}
-        target="_blank"
+        // target="_blank"
         rel="noopener noreferrer"
         className="block"
       >
