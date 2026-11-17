@@ -6,9 +6,9 @@ export default function AdminStatCard({
   value: number | string;
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 p-4 shadow-sm">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold">{value}</p>
+    <div className="card border-t-8 border-t-accent p-5">
+      <p className="kicker text-mute">{label}</p>
+      <p className="display mt-3 text-5xl">{value}</p>
     </div>
   );
 }

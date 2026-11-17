@@ -3,14 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Nexa",
-  description: "A small search engine built from scratch",
+  description: "Search the web and everything of yours: files, videos, mail and calendar.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>{children}</body>

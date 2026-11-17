@@ -7,24 +7,21 @@ const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/crawler", label: "Crawler" },
   { href: "/admin/analytics", label: "Analytics" },
+  { href: "/admin/apps", label: "Apps" },
 ];
 
 export default function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mb-6 flex gap-4 border-b border-gray-200">
+    <nav className="mb-8 inline-flex border-2 border-line bg-surface">
       {links.map((link) => {
         const active = pathname === link.href;
         return (
           <Link
             key={link.href}
             href={link.href}
-            className={`pb-2 text-sm ${
-              active
-                ? "border-b-2 border-brand text-brand-dark font-medium"
-                : "text-gray-500 hover:text-gray-800"
-            }`}
+            className={`kicker px-4 py-2.5 transition-colors ${active ? "bg-ink text-canvas" : "hover:bg-mustard"}`}
           >
             {link.label}
           </Link>

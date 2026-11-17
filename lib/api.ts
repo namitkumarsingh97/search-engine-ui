@@ -2,10 +2,25 @@ import {
   AdminStats,
   CrawlerStatus,
   RecentCrawl,
+  AnalyticsData,
   SearchResponse,
+  SearchSort,
+  SearchType,
 } from "./types";
+import { AdminApp } from "./apps";
+import { AuthUser, getToken } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+
+/** An API error that keeps the HTTP status, so pages can tell "not allowed" from "down". */
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
@@ -18,41 +33,118 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`API error ${res.status}: ${res.statusText}`);
+    const data = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, data.error ?? `API error ${res.status}: ${res.statusText}`);
   }
 
   return res.json() as Promise<T>;
 }
 
-export function search(query: string): Promise<SearchResponse> {
-  const params = new URLSearchParams({ q: query });
-  return apiFetch<SearchResponse>(`/search?${params.toString()}`);
+/** Admin endpoints need the signed-in user's token: passed in on the server, read from the cookie in the browser. */
+function adminFetch<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
+  const t = token ?? (typeof document !== "undefined" ? getToken() : null);
+  return apiFetch<T>(path, { ...init, headers: t ? { Authorization: `Bearer ${t}`, ...init.headers } : init.headers });
+}
+
+export async function getMe(token: string): Promise<AuthUser> {
+  return (await apiFetch<{ user: AuthUser }>("/auth/me", { headers: { Authorization: `Bearer ${token}` } })).user;
+}
+
+export function search(
+  query: string,
+  options: { type?: SearchType; page?: number; sort?: SearchSort } = {},
+  token?: string,
+): Promise<SearchResponse> {
+  const params = new URLSearchParams({ q: query, type: options.type ?? "all" });
+  if (options.page && options.page > 1) params.set("page", String(options.page));
+  if (options.sort && options.sort !== "relevance") params.set("sort", options.sort);
+  return apiFetch<SearchResponse>(`/search?${params.toString()}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+}
+
+interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
+/** Auth calls surface the API's own error message (e.g. "Invalid email or password"). */
+async function authFetch(path: string, body: unknown): Promise<AuthResponse> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+  return data as AuthResponse;
+}
+
+export function login(email: string, password: string): Promise<AuthResponse> {
+  return authFetch("/auth/login", { email, password });
+}
+
+export function register(name: string, email: string, password: string): Promise<AuthResponse> {
+  return authFetch("/auth/register", { name, email, password });
+}
+
+/** Sends the token when signed in, so the user's own recent searches come first. */
+function optionalAuthInit(): RequestInit | undefined {
+  const t = typeof document !== "undefined" ? getToken() : null;
+  return t ? { headers: { Authorization: `Bearer ${t}` } } : undefined;
 }
 
 export function getAutocomplete(prefix: string): Promise<string[]> {
   const params = new URLSearchParams({ q: prefix });
-  return apiFetch<string[]>(`/search/autocomplete?${params.toString()}`);
+  return apiFetch<string[]>(`/search/autocomplete?${params.toString()}`, optionalAuthInit());
 }
 
-export function getAdminStats(): Promise<AdminStats> {
-  return apiFetch<AdminStats>("/stats");
+/** The signed-in user's recent searches. Resolves to [] when signed out. */
+export async function getSearchHistory(): Promise<string[]> {
+  if (!optionalAuthInit()) return [];
+  return apiFetch<string[]>("/search/history", optionalAuthInit());
 }
 
-export function getRecentCrawls(): Promise<RecentCrawl[]> {
-  return apiFetch<RecentCrawl[]>("/crawler/recent");
+export function clearSearchHistory(query?: string): Promise<{ deleted: number }> {
+  const qs = query ? `?q=${encodeURIComponent(query)}` : "";
+  return apiFetch<{ deleted: number }>(`/search/history${qs}`, { ...optionalAuthInit(), method: "DELETE" });
+}
+
+export function getAnalytics(token?: string): Promise<AnalyticsData> {
+  return adminFetch<AnalyticsData>("/analytics", {}, token);
+}
+
+export function getAdminStats(token?: string): Promise<AdminStats> {
+  return adminFetch<AdminStats>("/stats", {}, token);
+}
+
+export function getRecentCrawls(token?: string): Promise<RecentCrawl[]> {
+  return adminFetch<RecentCrawl[]>("/crawler/recent", {}, token);
 }
 
 export function getCrawlerStatus(): Promise<CrawlerStatus> {
-  return apiFetch<CrawlerStatus>("/crawler/status");
+  return adminFetch<CrawlerStatus>("/crawler/status");
 }
 
 export function startCrawler(seedUrls: string[]): Promise<{ started: boolean }> {
-  return apiFetch<{ started: boolean }>("/crawler/start", {
+  return adminFetch<{ started: boolean }>("/crawler/start", {
     method: "POST",
     body: JSON.stringify({ seedUrls }),
   });
 }
 
 export function stopCrawler(): Promise<{ stopped: boolean }> {
-  return apiFetch<{ stopped: boolean }>("/crawler/stop", { method: "POST" });
+  return adminFetch<{ stopped: boolean }>("/crawler/stop", { method: "POST" });
 }
+
+// ---- Nexa apps (admin) -----------------------------------------------------------
+
+export type AppInput = Partial<Pick<AdminApp, "name" | "tagline" | "description" | "url" | "icon" | "tone" | "openInNewTab" | "visible" | "order">> & {
+  keywords?: string;
+};
+
+export const getAllApps = () => adminFetch<AdminApp[]>("/apps/all");
+export const createApp = (input: AppInput) => adminFetch<AdminApp>("/apps", { method: "POST", body: JSON.stringify(input) });
+export const updateApp = (id: string, input: AppInput) =>
+  adminFetch<AdminApp>(`/apps/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export const deleteApp = (id: string) => adminFetch<{ deleted: true }>(`/apps/${id}`, { method: "DELETE" });
