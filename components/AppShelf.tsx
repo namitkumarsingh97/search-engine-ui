@@ -9,7 +9,7 @@ export default function AppShelf({ apps }: { apps: PublicApp[] }) {
     <div className="mb-6">
       <p className="kicker mb-2 flex items-center gap-3">
         <span className="inline-block h-3 w-3 bg-accent" />
-        Nexa {apps.length === 1 ? "app" : "apps"}
+        Nexa {apps.length === 1 ? "product" : "products"}
       </p>
       <div className="grid gap-3">
         {apps.map((app) => {

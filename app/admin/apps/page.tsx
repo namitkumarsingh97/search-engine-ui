@@ -114,12 +114,12 @@ export default function AdminAppsPage() {
       <div className="page">
         <PageTitle
           kicker="Section 05 / Control room"
-          title="Apps"
-          subtitle="Your own projects, presented as Nexa features. They appear on the home page, in the Apps menu and in search results."
+          title="Products"
+          subtitle="Your own products, presented as Nexa features. They appear on the home page, in the Apps menu and in search results."
         >
           {!denied && (
             <button className="btn-primary !py-3" onClick={() => setForm({ ...blank })}>
-              <Plus size={16} strokeWidth={3} /> Add app
+              <Plus size={16} strokeWidth={3} /> Add product
             </button>
           )}
         </PageTitle>
@@ -129,7 +129,7 @@ export default function AdminAppsPage() {
             <p className="kicker mb-2 text-danger">Restricted</p>
             <h2 className="display text-4xl">Admin only</h2>
             <p className="mt-3 text-sm font-medium">
-              {denied === 401 ? "Sign in with an admin account to manage apps." : "This account doesn't have admin access."}
+              {denied === 401 ? "Sign in with an admin account to manage products." : "This account doesn't have admin access."}
             </p>
             {denied === 401 && (
               <Link href="/login" className="btn-primary mt-4">
@@ -143,7 +143,7 @@ export default function AdminAppsPage() {
             {error && <p className="mb-4 border-2 border-danger bg-surface px-3 py-2 text-sm font-bold text-danger">{error}</p>}
 
             {apps.length === 0 && !error && (
-              <p className="border-2 border-line bg-surface px-4 py-8 text-sm font-semibold">No apps yet. Add one with the button above.</p>
+              <p className="border-2 border-line bg-surface px-4 py-8 text-sm font-semibold">No products yet. Add one with the button above.</p>
             )}
 
             <ul className="border-2 border-line bg-surface">
@@ -194,7 +194,7 @@ export default function AdminAppsPage() {
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/60 p-4 sm:p-8" onMouseDown={() => setForm(null)}>
           <form onSubmit={onSubmit} onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-xl border-4 border-line bg-surface">
             <div className="border-b-4 border-line bg-mustard px-5 py-3">
-              <h2 className="display text-3xl">{form.id ? "Edit app" : "Add app"}</h2>
+              <h2 className="display text-3xl">{form.id ? "Edit product" : "Add product"}</h2>
             </div>
             <div className="space-y-4 p-5">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -275,7 +275,7 @@ export default function AdminAppsPage() {
 
               <div className="flex gap-2 border-t-2 border-line pt-4">
                 <button type="submit" disabled={busy} className="btn-primary">
-                  {form.id ? "Save changes" : "Add app"}
+                  {form.id ? "Save changes" : "Add product"}
                 </button>
                 <button type="button" className="btn-ghost" onClick={() => setForm(null)}>
                   Cancel

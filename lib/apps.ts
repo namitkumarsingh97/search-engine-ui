@@ -6,6 +6,7 @@ import {
   FileText,
   Globe,
   LayoutGrid,
+  Leaf,
   Map as MapIcon,
   Package,
   Rocket,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 import { API_URL } from "./drive";
 
-/** One of the owner's own projects, shown as a built-in Nexa feature. */
+/** One of the owner's own products, shown as a built-in Nexa feature. */
 export interface PublicApp {
   id: string;
   slug: string;
@@ -48,6 +49,7 @@ export const APP_ICONS = {
   clipboard: ClipboardList,
   package: Package,
   globe: Globe,
+  leaf: Leaf,
   rocket: Rocket,
   wrench: Wrench,
   calculator: Calculator,
