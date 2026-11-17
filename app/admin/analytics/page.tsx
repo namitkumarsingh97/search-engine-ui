@@ -3,6 +3,7 @@ import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import AdminStatCard from "@/components/AdminStatCard";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import PageTitle from "@/components/PageTitle";
 import { ApiError, getAnalytics } from "@/lib/api";
 import { TOKEN_COOKIE } from "@/lib/auth";
@@ -61,9 +62,9 @@ export default async function AdminAnalyticsPage() {
               {denied === 401 ? "Sign in with an admin account to see analytics." : "This account doesn't have admin access."}
             </p>
             {denied === 401 && (
-              <Link href="/login" className="btn-primary mt-4">
+              <SignInLink className="btn-primary mt-4">
                 Sign in
-              </Link>
+              </SignInLink>
             )}
           </div>
         ) : (

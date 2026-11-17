@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AdminNav from "@/components/AdminNav";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import PageTitle from "@/components/PageTitle";
 import {
   ApiError,
@@ -75,9 +76,9 @@ export default function AdminCrawlerPage() {
               {denied === 401 ? "Sign in with an admin account to use the crawler." : "This account doesn't have admin access."}
             </p>
             {denied === 401 && (
-              <Link href="/login" className="btn-primary mt-4">
+              <SignInLink className="btn-primary mt-4">
                 Sign in
-              </Link>
+              </SignInLink>
             )}
           </div>
         ) : (

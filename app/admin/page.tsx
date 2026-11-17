@@ -3,6 +3,7 @@ import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import AdminStatCard from "@/components/AdminStatCard";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import PageTitle from "@/components/PageTitle";
 import { ApiError, getAdminStats, getRecentCrawls } from "@/lib/api";
 import { TOKEN_COOKIE } from "@/lib/auth";
@@ -32,9 +33,9 @@ export default async function AdminOverviewPage() {
               {denied === 401 ? "Sign in with an admin account to see this page." : "This account doesn't have admin access."}
             </p>
             {denied === 401 && (
-              <Link href="/login" className="btn-primary mt-4">
+              <SignInLink className="btn-primary mt-4">
                 Sign in
-              </Link>
+              </SignInLink>
             )}
           </div>
         ) : (

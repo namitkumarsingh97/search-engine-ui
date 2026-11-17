@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import { getToken, parseUserCookie, USER_COOKIE } from "@/lib/auth";
 import {
   addComment,
@@ -90,7 +91,7 @@ export default function WatchPage() {
       <div className="page max-w-5xl pt-8">
         {error && (
           <p className="mb-3 border-2 border-danger bg-surface px-3 py-2 text-sm font-bold text-danger">
-            {error} {error.includes("sign in") && <Link href="/login" className="underline">Sign in</Link>}
+            {error} {error.includes("sign in") && <SignInLink className="underline">Sign in</SignInLink>}
           </p>
         )}
         {!video && !error && <p className="text-mute">Loading…</p>}
@@ -148,7 +149,7 @@ export default function WatchPage() {
               </form>
             ) : (
               <p className="mb-6 text-sm text-mute">
-                <Link href="/login" className="link">Sign in</Link> to like or comment.
+                <SignInLink className="link">Sign in</SignInLink> to like or comment.
               </p>
             )}
             <ul className="space-y-4">

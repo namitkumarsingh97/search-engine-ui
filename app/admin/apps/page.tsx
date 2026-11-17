@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import AdminNav from "@/components/AdminNav";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import PageTitle from "@/components/PageTitle";
 import { ApiError, AppInput, createApp, deleteApp, getAllApps, updateApp } from "@/lib/api";
 import { AdminApp, AppTone, ICON_NAMES, iconFor, TONE_CLASSES } from "@/lib/apps";
@@ -136,9 +137,9 @@ export default function AdminAppsPage() {
               {denied === 401 ? "Sign in with an admin account to manage products." : "This account doesn't have admin access."}
             </p>
             {denied === 401 && (
-              <Link href="/login" className="btn-primary mt-4">
+              <SignInLink className="btn-primary mt-4">
                 Sign in
-              </Link>
+              </SignInLink>
             )}
           </div>
         ) : (

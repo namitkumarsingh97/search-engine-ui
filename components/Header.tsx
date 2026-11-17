@@ -8,6 +8,7 @@ import { AuthUser, getToken, parseUserCookie, saveSession, USER_COOKIE } from "@
 import { getFolders } from "@/lib/mail";
 import AppsMenu from "./AppsMenu";
 import LogoutButton from "./LogoutButton";
+import SignInLink from "./SignInLink";
 
 const APP_LINKS = [
   { href: "/drive", label: "Drive", needsAuth: true },
@@ -38,8 +39,6 @@ export function Logo({ className = "" }: { className?: string }) {
 // so the signed-in user is read from the cookie after mount.
 export default function Header() {
   const pathname = usePathname();
-  // After signing in, come back to the page the visitor was on.
-  const nextParam = pathname && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/register") && !pathname.startsWith("/auth") ? `?next=${encodeURIComponent(pathname)}` : "";
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -124,12 +123,12 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Link href={`/login${nextParam}`} className="btn-ghost">
+                  <SignInLink mode="login" className="btn-ghost">
                     Sign in
-                  </Link>
-                  <Link href={`/register${nextParam}`} className="btn-primary hidden sm:inline-flex">
+                  </SignInLink>
+                  <SignInLink mode="register" className="btn-primary hidden sm:inline-flex">
                     Get started
-                  </Link>
+                  </SignInLink>
                 </div>
               ))}
           </div>

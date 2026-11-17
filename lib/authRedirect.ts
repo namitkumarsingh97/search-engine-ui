@@ -6,7 +6,8 @@
  *   2. The accounts app signs the user in and sends them back to /auth/callback?code=...&state=...
  *   3. /auth/callback checks the state and swaps the one-time code for a token (see exchangeCode).
  *
- * If NEXT_PUBLIC_AUTH_URL is not set, this app keeps using its own /login and /register forms.
+ * This app has no login or sign-up pages of its own any more: NEXT_PUBLIC_AUTH_URL must point at the
+ * accounts app (search-engine-auth), and every "Sign in" link goes straight there (see components/SignInLink.tsx).
  */
 import { API_URL } from "./drive";
 import { AuthUser, saveSession } from "./auth";
@@ -30,6 +31,10 @@ export const callbackUrl = () => `${window.location.origin}/auth/callback`;
 
 /** Sends the browser to the accounts app. `next` is the page to come back to afterwards. */
 export function startAuth(mode: "login" | "register", next?: string | null): void {
+  if (!AUTH_URL) {
+    console.error("NEXT_PUBLIC_AUTH_URL is not set, so there is no sign-in page to send you to.");
+    return;
+  }
   const state = randomState();
   try {
     sessionStorage.setItem(FLOW_KEY, JSON.stringify({ state, next: safeNext(next) }));

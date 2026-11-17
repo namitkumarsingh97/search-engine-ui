@@ -4,6 +4,7 @@ import { Film, Lock, Play, Upload } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import PageTitle from "@/components/PageTitle";
 import { formatSize } from "@/lib/drive";
 import { formatDuration, listVideos, thumbnailUrl, uploadVideo, VideoDto } from "@/lib/video";
@@ -89,7 +90,7 @@ export default function VideosPage() {
 
         {error && (
           <p className="mb-4 border-2 border-danger bg-surface px-3 py-2 text-sm font-bold text-danger">
-            {error} {error.includes("sign in") && <Link href="/login" className="underline">Sign in</Link>}
+            {error} {error.includes("sign in") && <SignInLink className="underline">Sign in</SignInLink>}
           </p>
         )}
 

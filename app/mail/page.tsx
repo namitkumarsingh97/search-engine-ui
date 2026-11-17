@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Header from "@/components/Header";
+import SignInLink from "@/components/SignInLink";
 import MailCompose, { ComposeInitial } from "@/components/MailCompose";
 import PageTitle from "@/components/PageTitle";
 import { parseUserCookie, USER_COOKIE } from "@/lib/auth";
@@ -202,7 +203,7 @@ function MailView() {
           <section className="min-w-0">
             {error && (
               <p className="mb-4 border-2 border-danger bg-surface px-3 py-2 text-sm font-bold text-danger">
-                {error} {error.toLowerCase().includes("sign in") && <Link href="/login" className="underline">Sign in</Link>}
+                {error} {error.toLowerCase().includes("sign in") && <SignInLink className="underline">Sign in</SignInLink>}
               </p>
             )}
             {notice && <p className="mb-4 border-2 border-ok bg-surface px-3 py-2 text-sm font-bold text-ok">{notice}</p>}

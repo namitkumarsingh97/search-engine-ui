@@ -63,31 +63,6 @@ export function search(
   });
 }
 
-interface AuthResponse {
-  token: string;
-  user: AuthUser;
-}
-
-/** Auth calls surface the API's own error message (e.g. "Invalid email or password"). */
-async function authFetch(path: string, body: unknown): Promise<AuthResponse> {
-  const res = await fetch(`${API_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
-  return data as AuthResponse;
-}
-
-export function login(email: string, password: string): Promise<AuthResponse> {
-  return authFetch("/auth/login", { email, password });
-}
-
-export function register(name: string, email: string, password: string): Promise<AuthResponse> {
-  return authFetch("/auth/register", { name, email, password });
-}
-
 /** Sends the token when signed in, so the user's own recent searches come first. */
 function optionalAuthInit(): RequestInit | undefined {
   const t = typeof document !== "undefined" ? getToken() : null;
