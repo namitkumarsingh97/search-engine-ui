@@ -1,11 +1,11 @@
-import AuthForm from "@/components/AuthForm";
+import AuthRedirect from "@/components/AuthRedirect";
 import Header from "@/components/Header";
 
 export default function RegisterPage() {
   return (
     <main>
       <Header />
-      <AuthForm mode="register" />
+      <AuthRedirect mode="register" />
     </main>
   );
 }

@@ -38,6 +38,8 @@ export function Logo({ className = "" }: { className?: string }) {
 // so the signed-in user is read from the cookie after mount.
 export default function Header() {
   const pathname = usePathname();
+  // After signing in, come back to the page the visitor was on.
+  const nextParam = pathname && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/register") && !pathname.startsWith("/auth") ? `?next=${encodeURIComponent(pathname)}` : "";
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -122,10 +124,10 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Link href="/login" className="btn-ghost">
+                  <Link href={`/login${nextParam}`} className="btn-ghost">
                     Sign in
                   </Link>
-                  <Link href="/register" className="btn-primary hidden sm:inline-flex">
+                  <Link href={`/register${nextParam}`} className="btn-primary hidden sm:inline-flex">
                     Get started
                   </Link>
                 </div>
