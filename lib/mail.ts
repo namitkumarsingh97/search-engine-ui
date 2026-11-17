@@ -66,6 +66,21 @@ const json = async <T>(p: Promise<Response>): Promise<T> => (await p).json() as 
 export const getMailbox = () => json<Mailbox>(rawFetch("/mailbox"));
 export const getFolders = () => json<FolderCounts>(rawFetch("/folders"));
 
+/** Storage allowance: `used` and `limit` are in bytes (trash counts until it is emptied). */
+export interface MailStorage {
+  used: number;
+  limit: number;
+  percent: number;
+  full: boolean;
+}
+export const getStorage = () => json<MailStorage>(rawFetch("/storage"));
+
+export function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+
 export const listMail = (folder: MailFolder, page = 1) =>
   json<{ items: MailSummary[]; total: number; page: number; pageSize: number }>(rawFetch(`/messages?folder=${folder}&page=${page}`));
 

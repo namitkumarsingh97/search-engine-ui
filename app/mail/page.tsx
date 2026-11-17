@@ -13,14 +13,17 @@ import {
   deleteMessage,
   emptyTrash,
   FolderCounts,
+  formatBytes,
   formatMailDate,
   getFolders,
   getMailbox,
   getMessage,
+  getStorage,
   getThread,
   listMail,
   MailDetail,
   MailFolder,
+  MailStorage,
   Mailbox,
   MailSummary,
   personLabel,
@@ -61,7 +64,12 @@ function MailView() {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const refreshCounts = useCallback(() => getFolders().then(setCounts).catch(() => undefined), []);
+  const [storage, setStorage] = useState<MailStorage | null>(null);
+
+  const refreshCounts = useCallback(() => {
+    getStorage().then(setStorage).catch(() => undefined);
+    return getFolders().then(setCounts).catch(() => undefined);
+  }, []);
 
   const loadList = useCallback(async () => {
     try {
@@ -194,6 +202,24 @@ function MailView() {
                 </Link>
               );
             })}
+            {storage && (
+              <div className="mt-4 w-full border-t-2 border-line pt-3 text-xs font-semibold lg:mt-6" aria-label="Mail storage">
+                <div className="flex justify-between">
+                  <span className="kicker">Storage</span>
+                  <span>
+                    {formatBytes(storage.used)} of {formatBytes(storage.limit)}
+                  </span>
+                </div>
+                <div className="mt-1.5 h-2 border-2 border-line bg-surface" role="progressbar" aria-valuenow={storage.percent} aria-valuemin={0} aria-valuemax={100}>
+                  <div className={`h-full ${storage.percent >= 90 ? "bg-danger" : storage.percent >= 70 ? "bg-accent" : "bg-ink"}`} style={{ width: `${storage.percent}%` }} />
+                </div>
+                {storage.percent >= 90 && (
+                  <p className={`mt-2 ${storage.full ? "text-danger" : ""}`}>
+                    {storage.full ? "Your mailbox is full: you can't send or save drafts." : "Almost full."} Delete old messages, then empty the Trash, to free up space.
+                  </p>
+                )}
+              </div>
+            )}
           </nav>
 
           <section className="min-w-0">
@@ -208,7 +234,7 @@ function MailView() {
               <>
                 {folder === "trash" && (
                   <div className="mb-3 flex items-center justify-between text-sm font-semibold">
-                    <span>Trashed mail is hidden from search.</span>
+                    <span>Trashed mail is hidden from search but still uses storage until you empty it.</span>
                     <button
                       className="btn-danger"
                       disabled={busy || list.length === 0}
