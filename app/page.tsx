@@ -1,8 +1,10 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/Header";
+import NewsList from "@/components/NewsList";
 import SearchBar from "@/components/SearchBar";
 import { appLinkProps, fetchApps, TONE_CLASSES } from "@/lib/apps";
+import { fetchNews } from "@/lib/news";
 
 // Rendered per request so apps added in the admin page show up straight away.
 export const dynamic = "force-dynamic";
@@ -34,7 +36,7 @@ function Composition() {
 }
 
 export default async function HomePage() {
-  const apps = await fetchApps();
+  const [apps, news] = await Promise.all([fetchApps(), fetchNews({ limit: 5 })]);
 
   // Built-in features and the owner's own apps share one grid, so they read as one product.
   const tiles = [
@@ -105,6 +107,18 @@ export default async function HomePage() {
             );
           })}
         </div>
+
+        {news && news.items.length > 0 && (
+          <div className="mt-12">
+            <div className="mb-3 flex items-end justify-between gap-4 border-b-4 border-line pb-2">
+              <h2 className="display text-4xl">What&apos;s new</h2>
+              <Link href="/news" className="kicker flex items-center gap-1.5 hover:underline">
+                All news <ArrowUpRight size={14} strokeWidth={3} />
+              </Link>
+            </div>
+            <NewsList items={news.items} />
+          </div>
+        )}
       </section>
 
       <footer className="border-t-4 border-line">

@@ -20,6 +20,7 @@ interface FormState {
   icon: string;
   tone: AppTone;
   keywords: string;
+  repos: string;
   openInNewTab: boolean;
   visible: boolean;
   order: string;
@@ -33,6 +34,7 @@ const blank: FormState = {
   icon: "layout-grid",
   tone: "mustard",
   keywords: "",
+  repos: "",
   openInNewTab: false,
   visible: true,
   order: "100",
@@ -47,6 +49,7 @@ const fromApp = (a: AdminApp): FormState => ({
   icon: a.icon,
   tone: a.tone,
   keywords: a.keywords.join(", "),
+  repos: a.repos.join(", "),
   openInNewTab: a.openInNewTab,
   visible: a.visible,
   order: String(a.order),
@@ -98,6 +101,7 @@ export default function AdminAppsPage() {
       icon: form.icon,
       tone: form.tone,
       keywords: form.keywords,
+      repos: form.repos,
       openInNewTab: form.openInNewTab,
       visible: form.visible,
       order: Number(form.order) || 100,
@@ -222,6 +226,12 @@ export default function AdminAppsPage() {
               <div>
                 <label className={label}>Search keywords (comma separated)</label>
                 <input className="input" value={form.keywords} placeholder="so searches for these words find the app" onChange={(e) => set("keywords", e.target.value)} />
+              </div>
+
+              <div>
+                <label className={label}>Public GitHub repos for News (owner/name, comma separated)</label>
+                <input className="input" value={form.repos} placeholder="namitkumarsingh97/PA_WFMS" onChange={(e) => set("repos", e.target.value)} />
+                <p className="mt-1 text-xs font-medium text-mute">New commits in these repos show up automatically under News.</p>
               </div>
 
               <div>

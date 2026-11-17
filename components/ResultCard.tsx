@@ -7,6 +7,7 @@ const TYPE_META = {
   mail: { label: "Mail", tone: "bg-surface2 text-ink" },
   event: { label: "Calendar", tone: "bg-ink text-mustard" },
   video: { label: "Video", tone: "bg-accent text-white" },
+  news: { label: "News", tone: "bg-mustard text-ink border-2 border-line" },
 } as const;
 
 /** "https://a.com/b/c" -> { host: "a.com", path: "b / c" } */
@@ -28,9 +29,11 @@ function formatDate(iso?: string): string {
 
 export default function ResultCard({ result, index }: { result: SearchResult; index: number }) {
   const meta = TYPE_META[result.type] ?? TYPE_META.web;
-  const external = result.type === "web";
-  const { host, path } = external ? prettyUrl(result.url) : { host: meta.label, path: "" };
-  const date = external ? "" : formatDate(result.date);
+  const isNews = result.type === "news";
+  // Web results and news link out; news shows "Product update" instead of a long GitHub address.
+  const external = result.type === "web" || isNews;
+  const { host, path } = result.type === "web" ? prettyUrl(result.url) : { host: isNews ? "Product update" : meta.label, path: "" };
+  const date = result.type === "web" ? "" : formatDate(result.date);
 
   return (
     <article className="group border-b-2 border-line last:border-b-0">

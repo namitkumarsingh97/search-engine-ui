@@ -1,4 +1,4 @@
-export type SearchType = "all" | "web" | "file" | "mail" | "event" | "video";
+export type SearchType = "all" | "web" | "file" | "mail" | "event" | "video" | "news";
 
 export type SearchSort = "relevance" | "date";
 

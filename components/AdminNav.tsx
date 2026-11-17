@@ -8,6 +8,7 @@ const links = [
   { href: "/admin/crawler", label: "Crawler" },
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/apps", label: "Products" },
+  { href: "/admin/news", label: "News" },
 ];
 
 export default function AdminNav() {

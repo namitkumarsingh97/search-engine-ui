@@ -33,6 +33,7 @@ export interface PublicApp {
 /** What the admin editor works with (includes hidden apps). */
 export interface AdminApp extends PublicApp {
   keywords: string[];
+  repos: string[];
   visible: boolean;
   order: number;
 }

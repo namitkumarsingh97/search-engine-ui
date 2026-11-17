@@ -141,6 +141,7 @@ export function stopCrawler(): Promise<{ stopped: boolean }> {
 
 export type AppInput = Partial<Pick<AdminApp, "name" | "tagline" | "description" | "url" | "icon" | "tone" | "openInNewTab" | "visible" | "order">> & {
   keywords?: string;
+  repos?: string;
 };
 
 export const getAllApps = () => adminFetch<AdminApp[]>("/apps/all");
@@ -148,3 +149,21 @@ export const createApp = (input: AppInput) => adminFetch<AdminApp>("/apps", { me
 export const updateApp = (id: string, input: AppInput) =>
   adminFetch<AdminApp>(`/apps/${id}`, { method: "PATCH", body: JSON.stringify(input) });
 export const deleteApp = (id: string) => adminFetch<{ deleted: true }>(`/apps/${id}`, { method: "DELETE" });
+
+// ---- News (admin) ------------------------------------------------------------------
+
+export interface AdminNewsItem {
+  id: string;
+  product: string;
+  message: string;
+  url: string;
+  repo: string;
+  committedAt: string;
+  hidden: boolean;
+}
+
+export const getAdminNews = (page = 1) =>
+  adminFetch<{ page: number; pageSize: number; total: number; items: AdminNewsItem[] }>(`/news/all?page=${page}`);
+export const syncNewsNow = () => adminFetch<{ added: number; repos: number; errors: string[] }>("/news/sync", { method: "POST" });
+export const setNewsHidden = (id: string, hidden: boolean) =>
+  adminFetch<{ id: string; hidden: boolean }>(`/news/${id}`, { method: "PATCH", body: JSON.stringify({ hidden }) });

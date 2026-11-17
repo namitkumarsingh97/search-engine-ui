@@ -12,6 +12,7 @@ import LogoutButton from "./LogoutButton";
 const APP_LINKS = [
   { href: "/drive", label: "Drive", needsAuth: true },
   { href: "/videos", label: "Videos", needsAuth: false },
+  { href: "/news", label: "News", needsAuth: false },
   { href: "/calendar", label: "Calendar", needsAuth: true },
   { href: "/mail", label: "Mail", needsAuth: true },
 ];

@@ -9,6 +9,7 @@ const TABS = [
   { type: "mail", label: "Mail" },
   { type: "event", label: "Calendar" },
   { type: "video", label: "Videos" },
+  { type: "news", label: "News" },
 ] as const;
 
 export default function SearchTabs({

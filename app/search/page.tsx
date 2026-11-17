@@ -7,7 +7,7 @@ import { search } from "@/lib/api";
 import { TOKEN_COOKIE } from "@/lib/auth";
 import { SearchSort, SearchType } from "@/lib/types";
 
-const VALID_TYPES: SearchType[] = ["all", "web", "file", "mail", "event", "video"];
+const VALID_TYPES: SearchType[] = ["all", "web", "file", "mail", "event", "video", "news"];
 
 interface SearchPageProps {
   searchParams: { q?: string; type?: string; page?: string; sort?: string };
@@ -23,7 +23,7 @@ function Tips() {
         <p className={row}><code className={code}>&quot;exact phrase&quot;</code>words next to each other, in order</p>
         <p className={row}><code className={code}>python -django</code>leave out results containing a word</p>
         <p className={row}><code className={code}>site:example.com</code>only that website</p>
-        <p className={row}><code className={code}>type:video</code>video, file, mail, event or web</p>
+        <p className={row}><code className={code}>type:video</code>video, file, mail, event, news or web</p>
       </div>
     </details>
   );
