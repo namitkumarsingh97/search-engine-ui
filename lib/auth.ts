@@ -10,6 +10,9 @@ export interface AuthUser {
   name: string;
   /** UI hint only (shows the Admin link); the API enforces admin access itself. */
   isAdmin?: boolean;
+  /** The part before @nexa.com, and the full address. */
+  handle?: string | null;
+  address?: string | null;
 }
 
 const WEEK_SECONDS = 60 * 60 * 24 * 7;

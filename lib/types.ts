@@ -20,6 +20,8 @@ export type SearchFacets = Record<SearchType, number>;
 export interface SearchResponse {
   /** Nexa apps (own projects) matching the query, for the shelf above results. */
   apps?: import("./apps").PublicApp[];
+  /** The signed-in person's own mail matching the query (top few), shown as a shelf on the All tab. */
+  mail?: SearchResult[];
   query: string;
   total: number;
   page: number;

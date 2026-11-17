@@ -2,6 +2,7 @@ import Link from "next/link";
 import { searchHref } from "@/lib/searchLinks";
 import { SearchResponse, SearchSort, SearchType } from "@/lib/types";
 import AppShelf from "./AppShelf";
+import MailShelf from "./MailShelf";
 import ResultCard from "./ResultCard";
 
 interface Props {
@@ -65,6 +66,7 @@ export default function SearchResults({ data, type, sort }: Props) {
     return (
       <div>
         <AppShelf apps={data.apps ?? []} />
+        <MailShelf items={data.mail ?? []} total={data.facets.mail} query={data.query} />
         {didYouMean}
         <div className="border-2 border-line bg-surface">
           <div className="h-3 bg-accent" />
@@ -89,6 +91,7 @@ export default function SearchResults({ data, type, sort }: Props) {
   return (
     <div>
       <AppShelf apps={data.apps ?? []} />
+      <MailShelf items={data.mail ?? []} total={data.facets.mail} query={data.query} />
       {didYouMean}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <p className="kicker flex items-center gap-3">

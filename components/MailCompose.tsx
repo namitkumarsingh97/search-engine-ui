@@ -1,9 +1,8 @@
 "use client";
 
-import { Paperclip, X } from "lucide-react";
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { formatSize } from "@/lib/drive";
-import { MailAttachment, searchContacts, submitMessage } from "@/lib/mail";
+import { X } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { searchContacts, submitMessage } from "@/lib/mail";
 
 export interface ComposeInitial {
   draftId?: string;
@@ -12,7 +11,6 @@ export interface ComposeInitial {
   cc: string;
   subject: string;
   body: string;
-  attachments: MailAttachment[];
 }
 
 interface Props {
@@ -28,17 +26,14 @@ export default function MailCompose({ initial, onClose, onDone }: Props) {
   const [showCc, setShowCc] = useState(Boolean(initial.cc));
   const [subject, setSubject] = useState(initial.subject);
   const [body, setBody] = useState(initial.body);
-  const [kept, setKept] = useState<MailAttachment[]>(initial.attachments);
-  const [files, setFiles] = useState<File[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const fileInput = useRef<HTMLInputElement>(null);
 
-  // Suggest registered users for whatever address is being typed in To.
+  // Suggest Nexa addresses for whatever is being typed in To.
   useEffect(() => {
     const last = to.split(/[,;\s]+/).pop()?.trim() ?? "";
-    if (last.length < 2) return setSuggestions([]);
+    if (last.length < 2 || last.includes("@")) return setSuggestions([]);
     const t = setTimeout(() => {
       searchContacts(last)
         .then((people) => setSuggestions(people.map((p) => p.email)))
@@ -47,9 +42,9 @@ export default function MailCompose({ initial, onClose, onDone }: Props) {
     return () => clearTimeout(t);
   }, [to]);
 
-  function pickSuggestion(email: string) {
+  function pickSuggestion(address: string) {
     const parts = to.split(/([,;\s]+)/);
-    parts[parts.length - 1] = email;
+    parts[parts.length - 1] = address;
     setTo(`${parts.join("")}, `);
     setSuggestions([]);
   }
@@ -58,17 +53,7 @@ export default function MailCompose({ initial, onClose, onDone }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await submitMessage({
-        draftId: initial.draftId,
-        replyTo: initial.replyTo,
-        to,
-        cc,
-        subject,
-        body,
-        send,
-        keep: kept.map((a) => a.id),
-        files,
-      });
+      await submitMessage({ draftId: initial.draftId, replyTo: initial.replyTo, to, cc, subject, body, send });
       onDone(send);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -108,7 +93,7 @@ export default function MailCompose({ initial, onClose, onDone }: Props) {
             <input
               className="input"
               value={to}
-              placeholder="name@example.com, another@example.com"
+              placeholder="ada@nexa.com, ben@nexa.com"
               autoFocus={!initial.to}
               onChange={(e) => setTo(e.target.value)}
             />
@@ -139,33 +124,9 @@ export default function MailCompose({ initial, onClose, onDone }: Props) {
 
           <div>
             <label className={label}>Message</label>
-            <textarea className="input min-h-[12rem] font-[inherit]" value={body} autoFocus={Boolean(initial.to)} onChange={(e) => setBody(e.target.value)} />
+            <textarea className="input min-h-[12rem] font-[inherit]" value={body} maxLength={20000} autoFocus={Boolean(initial.to)} onChange={(e) => setBody(e.target.value)} />
+            <p className="mt-1 text-xs font-medium text-mute">Plain text. Web links become clickable.</p>
           </div>
-
-          {(kept.length > 0 || files.length > 0) && (
-            <ul className="space-y-1.5">
-              {kept.map((a) => (
-                <li key={a.id} className="flex items-center gap-2 border-2 border-line bg-surface2 px-3 py-1.5 text-sm font-semibold">
-                  <Paperclip size={14} />
-                  <span className="flex-1 truncate">{a.name}</span>
-                  <span className="text-xs text-mute">{formatSize(a.size)}</span>
-                  <button type="button" className="icon-btn !p-1" aria-label="Remove attachment" onClick={() => setKept(kept.filter((k) => k.id !== a.id))}>
-                    <X size={14} strokeWidth={3} />
-                  </button>
-                </li>
-              ))}
-              {files.map((f, i) => (
-                <li key={`${f.name}-${i}`} className="flex items-center gap-2 border-2 border-line bg-mustard px-3 py-1.5 text-sm font-semibold">
-                  <Paperclip size={14} />
-                  <span className="flex-1 truncate">{f.name}</span>
-                  <span className="text-xs">{formatSize(f.size)}</span>
-                  <button type="button" className="icon-btn !p-1" aria-label="Remove attachment" onClick={() => setFiles(files.filter((_, j) => j !== i))}>
-                    <X size={14} strokeWidth={3} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
 
           {error && <p className="border-2 border-danger px-3 py-2 text-sm font-bold text-danger">{error}</p>}
 
@@ -176,19 +137,6 @@ export default function MailCompose({ initial, onClose, onDone }: Props) {
             <button type="button" disabled={busy} className="btn-ghost" onClick={() => submit(false)}>
               Save draft
             </button>
-            <button type="button" disabled={busy || kept.length + files.length >= 5} className="btn-ghost" onClick={() => fileInput.current?.click()}>
-              <Paperclip size={14} /> Attach
-            </button>
-            <input
-              ref={fileInput}
-              type="file"
-              multiple
-              hidden
-              onChange={(e) => {
-                setFiles([...files, ...Array.from(e.target.files ?? [])].slice(0, 5 - kept.length));
-                e.target.value = "";
-              }}
-            />
           </div>
         </div>
       </form>

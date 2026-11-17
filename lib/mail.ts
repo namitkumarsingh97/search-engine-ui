@@ -1,11 +1,20 @@
 import { getToken } from "./auth";
-import { API_URL } from "./drive";
+
+/** The Nexa mail service (search-engine-mail). It has its own address, separate from the main API. */
+export const MAIL_URL = (process.env.NEXT_PUBLIC_MAIL_URL ?? "http://localhost:4200").replace(/\/$/, "");
 
 export type MailFolder = "inbox" | "starred" | "sent" | "draft" | "trash";
 
+/** A person on a message. `email` holds their full Nexa address, e.g. ada@nexa.com. */
 export interface Person {
   name: string;
   email: string;
+}
+
+export interface Mailbox {
+  name: string;
+  handle: string;
+  address: string;
 }
 
 export interface MailSummary {
@@ -19,14 +28,6 @@ export interface MailSummary {
   to: Person[];
   subject: string;
   snippet: string;
-  hasAttachments: boolean;
-}
-
-export interface MailAttachment {
-  id: string;
-  name: string;
-  mimeType: string;
-  size: number;
 }
 
 export interface MailDetail extends MailSummary {
@@ -34,7 +35,6 @@ export interface MailDetail extends MailSummary {
   cc: Person[];
   body: string;
   sentAt: string | null;
-  attachments: MailAttachment[];
 }
 
 export type FolderCounts = Record<MailFolder, { total: number; unread: number }>;
@@ -45,9 +45,14 @@ async function rawFetch(path: string, init: RequestInit = {}): Promise<Response>
 
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
+  if (init.body) headers.set("Content-Type", "application/json");
 
-  const res = await fetch(`${API_URL}/mail${path}`, { ...init, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${MAIL_URL}${path}`, { ...init, headers });
+  } catch {
+    throw new Error("Couldn't reach the mail service. Check your connection and try again.");
+  }
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(res.status === 401 ? "Your session expired. Please sign in again." : (data.error ?? `Request failed (${res.status})`));
@@ -57,39 +62,27 @@ async function rawFetch(path: string, init: RequestInit = {}): Promise<Response>
 
 const json = async <T>(p: Promise<Response>): Promise<T> => (await p).json() as Promise<T>;
 
+/** The signed-in person's address. Asking for it also sets the mailbox up (and sends the welcome mail) the first time. */
+export const getMailbox = () => json<Mailbox>(rawFetch("/mailbox"));
 export const getFolders = () => json<FolderCounts>(rawFetch("/folders"));
 
 export const listMail = (folder: MailFolder, page = 1) =>
-  json<{ items: MailSummary[]; total: number; page: number; pageSize: number }>(rawFetch(`?folder=${folder}&page=${page}`));
+  json<{ items: MailSummary[]; total: number; page: number; pageSize: number }>(rawFetch(`/messages?folder=${folder}&page=${page}`));
 
-export const getMessage = (id: string) => json<MailDetail>(rawFetch(`/items/${id}`));
-export const getThread = (threadId: string) => json<MailDetail[]>(rawFetch(`/threads/${threadId}`));
+export const getMessage = (id: string) => json<MailDetail>(rawFetch(`/messages/${id}`));
+export const getThread = (threadId: string) => json<MailDetail[]>(rawFetch(`/threads/${encodeURIComponent(threadId)}`));
 
 export const setStarred = (id: string, starred: boolean) =>
-  json<MailSummary>(rawFetch(`/items/${id}`, { method: "PATCH", body: JSON.stringify({ starred }) }));
+  json<MailSummary>(rawFetch(`/messages/${id}`, { method: "PATCH", body: JSON.stringify({ starred }) }));
 export const setRead = (id: string, read: boolean) =>
-  json<MailSummary>(rawFetch(`/items/${id}`, { method: "PATCH", body: JSON.stringify({ read }) }));
+  json<MailSummary>(rawFetch(`/messages/${id}`, { method: "PATCH", body: JSON.stringify({ read }) }));
 
-export const trashMessage = (id: string) => rawFetch(`/items/${id}/trash`, { method: "POST" });
-export const restoreMessage = (id: string) => rawFetch(`/items/${id}/restore`, { method: "POST" });
-export const deleteMessage = (id: string) => rawFetch(`/items/${id}`, { method: "DELETE" });
-export const emptyTrash = () => rawFetch("/trash/all", { method: "DELETE" });
+export const trashMessage = (id: string) => rawFetch(`/messages/${id}/trash`, { method: "POST" });
+export const restoreMessage = (id: string) => rawFetch(`/messages/${id}/restore`, { method: "POST" });
+export const deleteMessage = (id: string) => rawFetch(`/messages/${id}`, { method: "DELETE" });
+export const emptyTrash = () => rawFetch("/trash", { method: "DELETE" });
 
 export const searchContacts = (q: string) => json<Person[]>(rawFetch(`/contacts?q=${encodeURIComponent(q)}`));
-
-export const saveAttachmentToDrive = (itemId: string, attId: string) =>
-  json<{ driveItemId: string }>(rawFetch(`/items/${itemId}/attachments/${attId}/save-to-drive`, { method: "POST" }));
-
-/** Downloads through fetch so the Authorization header can be sent, then saves the blob. */
-export async function downloadAttachment(itemId: string, att: MailAttachment): Promise<void> {
-  const res = await rawFetch(`/items/${itemId}/attachments/${att.id}`);
-  const url = URL.createObjectURL(await res.blob());
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = att.name;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export interface ComposeInput {
   draftId?: string;
@@ -99,24 +92,10 @@ export interface ComposeInput {
   subject: string;
   body: string;
   send: boolean;
-  /** Ids of attachments from the existing draft to keep. */
-  keep: string[];
-  files: File[];
 }
 
-export function submitMessage(input: ComposeInput) {
-  const form = new FormData();
-  if (input.draftId) form.append("draftId", input.draftId);
-  if (input.replyTo) form.append("replyTo", input.replyTo);
-  form.append("to", input.to);
-  form.append("cc", input.cc);
-  form.append("subject", input.subject);
-  form.append("body", input.body);
-  form.append("keep", JSON.stringify(input.keep));
-  if (input.send) form.append("send", "1");
-  input.files.forEach((f) => form.append("files", f)); // files last so fields arrive first
-  return json<MailDetail>(rawFetch("/messages", { method: "POST", body: form }));
-}
+export const submitMessage = (input: ComposeInput) =>
+  json<MailDetail>(rawFetch("/messages", { method: "POST", body: JSON.stringify(input) }));
 
 export function formatMailDate(iso: string): string {
   const d = new Date(iso);

@@ -1,32 +1,31 @@
 "use client";
 
-import { ArrowLeft, Download, FolderInput, Paperclip, Pencil, Star } from "lucide-react";
+import { ArrowLeft, Pencil, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Header from "@/components/Header";
+import Linkify from "@/components/Linkify";
 import SignInLink from "@/components/SignInLink";
 import MailCompose, { ComposeInitial } from "@/components/MailCompose";
 import PageTitle from "@/components/PageTitle";
-import { parseUserCookie, USER_COOKIE } from "@/lib/auth";
-import { formatSize } from "@/lib/drive";
 import {
   deleteMessage,
-  downloadAttachment,
   emptyTrash,
   FolderCounts,
   formatMailDate,
   getFolders,
+  getMailbox,
   getMessage,
   getThread,
   listMail,
   MailDetail,
   MailFolder,
+  Mailbox,
   MailSummary,
   personLabel,
   personShort,
   restoreMessage,
-  saveAttachmentToDrive,
   setRead,
   setStarred,
   trashMessage,
@@ -39,11 +38,6 @@ const FOLDERS: { id: MailFolder; label: string }[] = [
   { id: "draft", label: "Drafts" },
   { id: "trash", label: "Trash" },
 ];
-
-function myEmail(): string {
-  const m = document.cookie.split("; ").find((c) => c.startsWith(`${USER_COOKIE}=`));
-  return parseUserCookie(m?.slice(USER_COOKIE.length + 1))?.email ?? "";
-}
 
 const quote = (m: MailDetail) =>
   `\n\nOn ${new Date(m.date).toLocaleString()}, ${personLabel(m.from)} wrote:\n` +
@@ -58,6 +52,7 @@ function MailView() {
   const folder = (FOLDERS.some((f) => f.id === params.get("folder")) ? params.get("folder") : "inbox") as MailFolder;
   const itemId = params.get("item");
 
+  const [mailbox, setMailbox] = useState<Mailbox | null>(null);
   const [counts, setCounts] = useState<FolderCounts | null>(null);
   const [list, setList] = useState<MailSummary[]>([]);
   const [thread, setThread] = useState<MailDetail[]>([]);
@@ -92,7 +87,6 @@ function MailView() {
           cc: opened.cc.map((p) => p.email).join(", "),
           subject: opened.subject,
           body: opened.body,
-          attachments: opened.attachments,
         });
         router.replace(`/mail?folder=draft`);
         return;
@@ -104,6 +98,11 @@ function MailView() {
       setError(e instanceof Error ? e.message : "Couldn't open that message.");
     }
   }, [itemId, refreshCounts, router]);
+
+  // Asking for the mailbox also sets it up (and sends the welcome mail) the first time someone opens Mail.
+  useEffect(() => {
+    getMailbox().then(setMailbox).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (itemId) loadThread();
@@ -132,7 +131,7 @@ function MailView() {
   const current = thread.find((m) => m.id === itemId) ?? thread[thread.length - 1];
 
   function openReply(m: MailDetail, all: boolean) {
-    const me = myEmail();
+    const me = mailbox?.address ?? "";
     const others = (people: { email: string }[]) => people.map((p) => p.email).filter((e) => e !== me);
     const toList = m.from.email === me ? others(m.to) : [m.from.email, ...(all ? others(m.to) : [])];
     setCompose({
@@ -141,7 +140,6 @@ function MailView() {
       cc: all ? others(m.cc).join(", ") : "",
       subject: /^re:/i.test(m.subject) ? m.subject : `Re: ${m.subject}`,
       body: quote(m),
-      attachments: [],
     });
   }
 
@@ -151,7 +149,6 @@ function MailView() {
       cc: "",
       subject: /^fwd:/i.test(m.subject) ? m.subject : `Fwd: ${m.subject}`,
       body: `\n\n---------- Forwarded message ----------\nFrom: ${personLabel(m.from)}\nTo: ${m.to.map(personLabel).join(", ")}\nDate: ${new Date(m.date).toLocaleString()}\nSubject: ${m.subject}\n\n${m.body}`,
-      attachments: [],
     });
   }
 
@@ -164,7 +161,6 @@ function MailView() {
         cc: d.cc.map((p) => p.email).join(", "),
         subject: d.subject,
         body: d.body,
-        attachments: d.attachments,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't open that draft.");
@@ -180,8 +176,8 @@ function MailView() {
     <main>
       <Header />
       <div className="page">
-        <PageTitle kicker="Section 04 / Correspondence" title="Mail" subtitle="Write to other Nexa users. Every message is searchable by you, and only you.">
-          <button className="btn-primary !py-3" onClick={() => setCompose({ to: "", cc: "", subject: "", body: "", attachments: [] })}>
+        <PageTitle kicker="Section 04 / Correspondence" title="Mail" subtitle={mailbox ? `Your address: ${mailbox.address}. Write to anyone on Nexa. Only you can search your mail.` : "Write to other Nexa users. Only you can search your mail."}>
+          <button className="btn-primary !py-3" onClick={() => setCompose({ to: "", cc: "", subject: "", body: "" })}>
             <Pencil size={15} strokeWidth={3} /> Compose
           </button>
         </PageTitle>
@@ -245,7 +241,6 @@ function MailView() {
                             <span className={unread ? "font-black" : "font-bold"}>{m.subject || "(no subject)"}</span>
                             <span className="font-medium text-mute"> — {m.snippet}</span>
                           </span>
-                          {m.hasAttachments && <Paperclip size={14} className="shrink-0" />}
                           <span className="w-16 shrink-0 text-right text-xs font-bold">{formatMailDate(m.date)}</span>
                         </>
                       );
@@ -327,28 +322,7 @@ function MailView() {
                         </div>
                         <span className="kicker">{new Date(m.date).toLocaleString()}</span>
                       </header>
-                      <div className="whitespace-pre-wrap break-words px-4 py-5 text-[15px] font-medium leading-relaxed">{m.body || "(no text)"}</div>
-                      {m.attachments.length > 0 && (
-                        <ul className="space-y-2 border-t-2 border-line p-4">
-                          {m.attachments.map((a) => (
-                            <li key={a.id} className="flex flex-wrap items-center gap-2 border-2 border-line bg-surface2 px-3 py-2 text-sm font-semibold">
-                              <Paperclip size={14} />
-                              <span className="min-w-0 flex-1 truncate">{a.name}</span>
-                              <span className="text-xs text-mute">{formatSize(a.size)}</span>
-                              <button className="btn-ghost !px-2.5 !py-1" disabled={busy} onClick={() => run(() => downloadAttachment(m.id, a), undefined, () => undefined)}>
-                                <Download size={13} /> Download
-                              </button>
-                              <button
-                                className="btn-ghost !px-2.5 !py-1"
-                                disabled={busy}
-                                onClick={() => run(() => saveAttachmentToDrive(m.id, a.id), `Saved "${a.name}" to your Drive.`, () => undefined)}
-                              >
-                                <FolderInput size={13} /> Save to Drive
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      <div className="whitespace-pre-wrap break-words px-4 py-5 text-[15px] font-medium leading-relaxed">{m.body ? <Linkify text={m.body} /> : "(no text)"}</div>
                     </article>
                   ))}
                 </div>
