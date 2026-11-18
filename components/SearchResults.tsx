@@ -2,6 +2,7 @@ import Link from "next/link";
 import { searchHref } from "@/lib/searchLinks";
 import { SearchResponse, SearchSort, SearchType } from "@/lib/types";
 import AppShelf from "./AppShelf";
+import GoogleFallback from "./GoogleFallback";
 import MailShelf from "./MailShelf";
 import ResultCard from "./ResultCard";
 
@@ -82,6 +83,9 @@ export default function SearchResults({ data, type, sort }: Props) {
             </p>
           </div>
         </div>
+        <div className="mt-4">
+          <GoogleFallback data={data} type={type} />
+        </div>
       </div>
     );
   }
@@ -122,6 +126,7 @@ export default function SearchResults({ data, type, sort }: Props) {
         ))}
       </div>
       <Pagination data={data} type={type} sort={sort} />
+      <GoogleFallback data={data} type={type} />
     </div>
   );
 }
