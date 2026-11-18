@@ -2,9 +2,10 @@ import { cookies } from "next/headers";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
+import AgeGate from "@/components/AgeGate";
 import SearchTabs from "@/components/SearchTabs";
 import { search } from "@/lib/api";
-import { TOKEN_COOKIE } from "@/lib/auth";
+import { ADULT_COOKIE, TOKEN_COOKIE } from "@/lib/auth";
 import { SearchSort, SearchType } from "@/lib/types";
 
 const VALID_TYPES: SearchType[] = ["all", "web", "file", "mail", "event", "video", "news"];
@@ -51,10 +52,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   let data;
   let error: string | null = null;
+  // Self-declared "I am 18 or older", kept in this browser only.
+  const adult = cookies().get(ADULT_COOKIE)?.value === "1";
 
   try {
     const rawToken = cookies().get(TOKEN_COOKIE)?.value;
-    data = await search(query, { type, page, sort }, rawToken ? decodeURIComponent(rawToken) : undefined);
+    data = await search(query, { type, page, sort, mature: adult }, rawToken ? decodeURIComponent(rawToken) : undefined);
   } catch (e) {
     error = e instanceof Error ? e.message : "Something went wrong.";
   }
@@ -76,7 +79,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               Failed to load results: {error}
             </div>
           )}
-          {data && <SearchResults data={data} type={type} sort={sort} />}
+          {data && <AgeGate data={data} adult={adult} />}
+          {data && !(data.ageCheck && !adult && (data.matureHidden ?? 0) === 0) && <SearchResults data={data} type={type} sort={sort} />}
         </div>
       </div>
     </main>

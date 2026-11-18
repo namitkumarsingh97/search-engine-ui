@@ -1,6 +1,8 @@
 // Token + user live in cookies so server components (the search page) can read
 // them via next/headers. Set from client JS, so NOT httpOnly — see AGENT.md.
 
+/** Set (1 year, this browser only) when the visitor confirms they are 18 or older. */
+export const ADULT_COOKIE = "nexa_18";
 export const TOKEN_COOKIE = "nexa_token";
 export const USER_COOKIE = "nexa_user";
 

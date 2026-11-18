@@ -30,6 +30,11 @@ export interface SearchResponse {
   results: SearchResult[];
   facets: SearchFacets;
   suggestion?: string;
+  /** SafeSearch is on: mature results are hidden. */
+  safeSearch?: boolean;
+  matureHidden?: number;
+  /** The search touches adult topics, so the visitor is asked to confirm they are 18+. */
+  ageCheck?: boolean;
 }
 
 export interface AnalyticsData {

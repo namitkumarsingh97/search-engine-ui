@@ -52,12 +52,13 @@ export async function getMe(token: string): Promise<AuthUser> {
 
 export function search(
   query: string,
-  options: { type?: SearchType; page?: number; sort?: SearchSort } = {},
+  options: { type?: SearchType; page?: number; sort?: SearchSort; mature?: boolean } = {},
   token?: string,
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q: query, type: options.type ?? "all" });
   if (options.page && options.page > 1) params.set("page", String(options.page));
   if (options.sort && options.sort !== "relevance") params.set("sort", options.sort);
+  if (options.mature) params.set("mature", "1");
   return apiFetch<SearchResponse>(`/search?${params.toString()}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
